@@ -93,10 +93,12 @@ public final class Interrupt {
      * @return			<tt>true</tt> if interrupts were enabled.
      */
     public boolean setStatus(boolean status) {
+		// 인터럽트 발생 후 상태를 저장
 		boolean oldStatus = enabled;
 		enabled = status;
 
 		if (oldStatus == false && status == true)
+			// 만약 커널 모드인 경우 tick을 증가시킴
 			tick(true);
 
 		return oldStatus;
