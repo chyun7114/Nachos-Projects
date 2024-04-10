@@ -137,28 +137,35 @@ public class KThread {
      */
     public void fork() {
 		// 복제를 하기 위해 새로 스레드가 만들어지는 상태에 있어야 실행
+		// 즉, 현재 fork되지 않은 상태여야 fork 수행 가능
 		Lib.assertTrue(status == statusNew);
 		// fork() method를 실행하여 스레드를 복제하기 전에 복제 대상이 현재 실행 중인지 판단
 		Lib.assertTrue(target != null);
 
+		// 디버그 메시지를 띄웁니다
+		// 앞으로 모든 Lib.debug함수는 디버그 메시지 출력 용도입니다.
 		Lib.debug(dbgThread,
 			  "Forking thread: " + toString() + " Runnable: " + target);
 		
 		// interrupt 발생 이후 원래 스레드를 정지시킴 => 이 행위를 위해 intStatus를 false로 설정
 		// 머신의 현재 상태를 intStatus에 넣고 머신의 interrupt 발생을 false상태로 만든다.
+		// interrupt class내의 disable함수는 기본적으로 enable이 false로 설정 되어있는것을 토대로
+		// oldStatus에 false 저장됨 => 그러므로 intStatus의 값은 false로 저장된다
 		boolean intStatus = Machine.interrupt().disable();
 		
 		// 복제된 스레드의 TCB를 실행 시킨다
+		// 지정된 target이 thread에서 실행된다.
 		tcb.start(new Runnable() {
 			public void run() {
 				runThread();
 			}
 		});
 		
-		// fork된 스레드를 readyQueue에 집어 넣는다
+		// fork된 스레드를 ready 상태로 만들고
+		// 그 스레드를 readyQueue에 집어 넣습니다.
 		ready();
 		
-		// 원래 스레드를 인터럽트가 발생한 시점으로 다시 되돌린다
+		// 인터럽트 intStatus의 상태에 따라 복구시킴
 		Machine.interrupt().restore(intStatus);
     }
 
