@@ -244,16 +244,17 @@ public class KThread {
 		// 현재 스레드가 실행 중인지 판단
 		Lib.assertTrue(currentThread.status == statusRunning);
 
-		// 현재 인터럽트를 비활성화 시키기기 전에 이 상태를 저장
+		// 현재 인터럽트를 비활성화 시키기 전에 이 상태를 저장
 		boolean intStatus = Machine.interrupt().disable();
 
 		// 현재 실행중인 스레드가 readyQueue로 들어감
 		currentThread.ready();
 
 		// 양보받은 다음 스레드를 실행
-		// 실행이 종료되면
+
 		runNextThread();
 
+		// 실행이 종료되면
 		// 양보한 스레드가 인터럽트 발생 시점으로 되돌아가 스레드를 다시 실행한다.
 		Machine.interrupt().restore(intStatus);
     }
@@ -279,6 +280,7 @@ public class KThread {
 		if (currentThread.status != statusFinished)
 			currentThread.status = statusBlocked;
 
+		// 현재 스레드가 종료 또는 양도되었으므로 다음 스레드를 실행 시킵니다.
 		runNextThread();
     }
 
@@ -418,6 +420,7 @@ public class KThread {
 		Lib.assertTrue(tcb == TCB.currentTCB());
 
 		// current스레드의 상태를 수정한다
+		// current스레드의 상태를 run으로 바꿈 -> 바로 다음에 동작을 위한 상태로 전환
 		Machine.autoGrader().runningThread(this);
 		status = statusRunning;
 		
