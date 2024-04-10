@@ -53,17 +53,17 @@ public class Semaphore {
      * sleeping on this semaphore.
      */
     public void V() {
-	boolean intStatus = Machine.interrupt().disable();
+		boolean intStatus = Machine.interrupt().disable();
 
-	KThread thread = waitQueue.nextThread();
-	if (thread != null) {
-	    thread.ready();
-	}
-	else {
-	    value++;
-	}
-	
-	Machine.interrupt().restore(intStatus);
+		KThread thread = waitQueue.nextThread();
+		if (thread != null) {
+			thread.ready();
+		}
+		else {
+			value++;
+		}
+
+		Machine.interrupt().restore(intStatus);
     }
 
     private static class PingTest implements Runnable {
@@ -87,15 +87,15 @@ public class Semaphore {
      * Test if this module is working.
      */
     public static void selfTest() {
-	Semaphore ping = new Semaphore(0);
-	Semaphore pong = new Semaphore(0);
+		Semaphore ping = new Semaphore(0);
+		Semaphore pong = new Semaphore(0);
 
-	new KThread(new PingTest(ping, pong)).setName("ping").fork();
+		new KThread(new PingTest(ping, pong)).setName("ping").fork();
 
-	for (int i=0; i<10; i++) {
-	    ping.V();
-	    pong.P();
-	}
+		for (int i=0; i<10; i++) {
+			ping.V();
+			pong.P();
+		}
     }
 
     private int value;

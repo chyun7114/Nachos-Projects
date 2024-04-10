@@ -15,7 +15,7 @@ public class ThreadedKernel extends Kernel {
 
     /**
      * Initialize this kernel. Creates a scheduler, the first thread, and an
-     * alarm, and enables interrupts. Creates a file system if necessary.   
+     * alarm, and enables interrupts. Creates a file system if necessary.
      */
     public void initialize(String[] args) {
         // set scheduler
@@ -45,13 +45,31 @@ public class ThreadedKernel extends Kernel {
      * autograder never calls this method, so it is safe to put additional
      * tests here.
      */
-    public void selfTest() {
-        KThread.selfTest();
-        Semaphore.selfTest();
-        SynchList.selfTest();
-        if (Machine.bank() != null) {
-            ElevatorBank.selfTest();
+    private static class PingTest implements Runnable {
+        PingTest(int which) {
+            this.which = which;
         }
+
+        public void run() {
+            for (int i=0; i<10; i++) {
+                System.out.println("*** thread " + which + " looped "
+                        + i + " times");
+                KThread.currentThread().yield();
+            }
+        }
+
+        private int which;
+    }
+
+
+    public void selfTest() {
+        new KThread(new PingTest(1)).setName("forked thread").fork();
+//        KThread.selfTest();
+//        Semaphore.selfTest();
+//        SynchList.selfTest();
+//        if (Machine.bank() != null) {
+//            ElevatorBank.selfTest();
+//        }
     }
 
     /**

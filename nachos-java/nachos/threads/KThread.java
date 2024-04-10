@@ -148,17 +148,17 @@ public class KThread {
 		// 머신의 현재 상태를 intStatus에 넣고 머신의 interrupt 발생을 false상태로 만든다.
 		boolean intStatus = Machine.interrupt().disable();
 		
-		// 복제된 새로운 스레드를 실행 시킴
+		// 복제된 스레드의 TCB를 실행 시킨다
 		tcb.start(new Runnable() {
 			public void run() {
 				runThread();
 			}
 		});
 		
-		// 원래 스레드를 다시 ready상대로 되돌림
+		// fork된 스레드를 readyQueue에 집어 넣는다
 		ready();
 		
-		// 원래 스레드를 인터럽트가 발생한 시점으로 다시 되돌려서 실행함
+		// 원래 스레드를 인터럽트가 발생한 시점으로 다시 되돌린다
 		Machine.interrupt().restore(intStatus);
     }
 
@@ -239,7 +239,7 @@ public class KThread {
 		// 현재 스레드가 실행 중인지 판단
 		Lib.assertTrue(currentThread.status == statusRunning);
 
-		// 현재 인터럽트 발생 => 인터럽트가 더이상 발생 하지 않게 disable시킴
+		// 현재 인터럽트를 비활성화 시키기기 전에 이 상태를 저장
 		boolean intStatus = Machine.interrupt().disable();
 
 		// 현재 실행중인 스레드가 readyQueue로 들어감
@@ -267,8 +267,10 @@ public class KThread {
     public static void sleep() {
 		Lib.debug(dbgThread, "Sleeping thread: " + currentThread.toString());
 
+		// 현재 인터럽트가 비활성화 되어있는지 확인
 		Lib.assertTrue(Machine.interrupt().disabled());
-
+		
+		// 종료된 스레드를 block상태로 만든다
 		if (currentThread.status != statusFinished)
 			currentThread.status = statusBlocked;
 
@@ -282,11 +284,16 @@ public class KThread {
     public void ready() {
 		Lib.debug(dbgThread, "Ready thread: " + toString());
 
+		// 인터럽트가 현재 비활성화 상태인지 확인
 		Lib.assertTrue(Machine.interrupt().disabled());
+		// 레디 상태가 아니어야 레디 상태로 스레드를 만들 수 있다
 		Lib.assertTrue(status != statusReady);
 
+		// 상태를 레디 상태로 만든 뒤
 		status = statusReady;
+		// 이 스레드가 idle스레드가 아니면
 		if (this != idleThread)
+			// 레디 큐에 레디 상태로 만든 스레드를 집어넣는다
 			readyQueue.waitForAccess(this);
 
 		Machine.autoGrader().readyThread(this);
@@ -336,10 +343,14 @@ public class KThread {
      * using <tt>run()</tt>.
      */
     private static void runNextThread() {
+		// 레디 큐에서 다음에 실행할 스레드를 빼온다
 		KThread nextThread = readyQueue.nextThread();
+		// 만약에 레디큐가 비어있다면
 		if (nextThread == null)
+			// 비어있는 kThread객체를 다음 스레드로 한 뒤
 			nextThread = idleThread;
-
+		
+		// 다음에 실행하고자하는 스레드를 작동시킨다
 		nextThread.run();
     }
 
@@ -393,12 +404,16 @@ public class KThread {
     protected void restoreState() {
 		Lib.debug(dbgThread, "Running thread: " + currentThread.toString());
 
+		// 스레드의 상태를 체크
+		// 인터럽트가 비활성화 상태인지 체크하고
+		// 현재 실행중인 스레드와 메소드를 호출한 스레드가 일치하는지 체크하고
+		// tcb가 일치하는지 확인한다.
 		Lib.assertTrue(Machine.interrupt().disabled());
 		Lib.assertTrue(this == currentThread);
 		Lib.assertTrue(tcb == TCB.currentTCB());
 
+		// current스레드의 상태를 수정한다
 		Machine.autoGrader().runningThread(this);
-
 		status = statusRunning;
 		
 		
@@ -447,16 +462,6 @@ public class KThread {
 
 		new KThread(new PingTest(1)).setName("forked thread").fork();
 		new PingTest(0).run();
-
-//		new KThread(new PingTest(1)).setName("forked thread").fork();
-//        /*
-//        KThread.selfTest();
-//        Semaphore.selfTest();
-//        SynchList.selfTest();
-//        if (Machine.bank() != null) {
-//            ElevatorBank.selfTest();
-//        }
-//        */
     }
 
     private static final char dbgThread = 't';

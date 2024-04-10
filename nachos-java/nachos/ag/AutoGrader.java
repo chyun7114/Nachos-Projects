@@ -29,42 +29,42 @@ public class AutoGrader {
      * 				machine.
      */
     public void start(Privilege privilege) {
-	Lib.assertTrue(this.privilege == null,
-		   "start() called multiple times");
-	this.privilege = privilege;
+		Lib.assertTrue(this.privilege == null,
+			   "start() called multiple times");
+		this.privilege = privilege;
 
-	String[] args = Machine.getCommandLineArguments();
+		String[] args = Machine.getCommandLineArguments();
 
-	extractArguments(args);
+		extractArguments(args);
 
-	System.out.print(" grader");
+		System.out.print(" grader");
 
-	init();
+		init();
 
-	System.out.print("\n");	
+		System.out.print("\n");
 
-	kernel =
-	    (Kernel) Lib.constructObject(Config.getString("Kernel.kernel"));
-	kernel.initialize(args);
+		kernel =
+			(Kernel) Lib.constructObject(Config.getString("Kernel.kernel"));
+		kernel.initialize(args);
 
-	run();
+		run();
     }
 
     private void extractArguments(String[] args) {
-	String testArgsString = Config.getString("AutoGrader.testArgs");
-	if (testArgsString == null) {
-		testArgsString = "";
-	}
-	
-	for (int i=0; i<args.length; ) {
-	    String arg = args[i++];
-	    if (arg.length() > 0 && arg.charAt(0) == '-') {
-		if (arg.equals("-#")) {
-		    Lib.assertTrue(i < args.length,
-			       "-# switch missing argument");
-		    testArgsString = args[i++];
+		String testArgsString = Config.getString("AutoGrader.testArgs");
+		if (testArgsString == null) {
+			testArgsString = "";
 		}
-	    }
+
+		for (int i=0; i<args.length; ) {
+			String arg = args[i++];
+			if (arg.length() > 0 && arg.charAt(0) == '-') {
+			if (arg.equals("-#")) {
+				Lib.assertTrue(i < args.length,
+					   "-# switch missing argument");
+				testArgsString = args[i++];
+			}
+		}
 	}
 
 	StringTokenizer st = new StringTokenizer(testArgsString, ",\n\t\f\r");
@@ -149,9 +149,9 @@ public class AutoGrader {
     }
     
     void run() {
-	kernel.selfTest();
-	kernel.run();
-	kernel.terminate();
+		kernel.selfTest();
+		kernel.run();
+		kernel.terminate();
     }
 
     Privilege privilege = null;

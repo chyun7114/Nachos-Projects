@@ -18,49 +18,49 @@ public final class Machine {
      * @param	args	the command line arguments.
      */
     public static void main(final String[] args) {
-	System.out.print("nachos 5.0j initializing...");
-	
-	Lib.assertTrue(Machine.args == null);
-	Machine.args = args;
+		System.out.print("nachos 5.0j initializing...");
 
-	processArgs();
+		Lib.assertTrue(Machine.args == null);
+		Machine.args = args;
 
-	Config.load(configFileName);
+		processArgs();
 
-	// get the current directory (.)
-	baseDirectory = new File(new File("").getAbsolutePath());
-	// get the nachos directory (./nachos)
-	nachosDirectory = new File(baseDirectory, "nachos");
+		Config.load(configFileName);
 
-	String testDirectoryName =
-	    Config.getString("FileSystem.testDirectory");
+		// get the current directory (.)
+		baseDirectory = new File(new File("").getAbsolutePath());
+		// get the nachos directory (./nachos)
+		nachosDirectory = new File(baseDirectory, "nachos");
 
-	// get the test directory
-	if (testDirectoryName != null) {
-	    testDirectory = new File(testDirectoryName);
-	}
-	else {
-	    // use ../test
-	    testDirectory = new File(baseDirectory.getParentFile(), "test");
-	}
+		String testDirectoryName =
+			Config.getString("FileSystem.testDirectory");
 
-	securityManager = new NachosSecurityManager(testDirectory);
-	privilege = securityManager.getPrivilege();
+		// get the test directory
+		if (testDirectoryName != null) {
+			testDirectory = new File(testDirectoryName);
+		}
+		else {
+			// use ../test
+			testDirectory = new File(baseDirectory.getParentFile(), "test");
+		}
 
-	privilege.machine = new MachinePrivilege();
+		securityManager = new NachosSecurityManager(testDirectory);
+		privilege = securityManager.getPrivilege();
 
-	TCB.givePrivilege(privilege);
-	privilege.stats = stats;
+		privilege.machine = new MachinePrivilege();
 
-	securityManager.enable();
-	createDevices();
-	checkUserClasses();
+		TCB.givePrivilege(privilege);
+		privilege.stats = stats;
 
-	autoGrader = (AutoGrader) Lib.constructObject(autoGraderClassName);
+		securityManager.enable();
+		createDevices();
+		checkUserClasses();
 
-	new TCB().start(new Runnable() {
-	    public void run() { autoGrader.start(privilege); }
-	});
+		autoGrader = (AutoGrader) Lib.constructObject(autoGraderClassName);
+
+		new TCB().start(new Runnable() {
+			public void run() { autoGrader.start(privilege); }
+		});
     }
 
     /**
