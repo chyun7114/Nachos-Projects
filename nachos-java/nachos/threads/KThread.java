@@ -149,8 +149,6 @@ public class KThread {
 		
 		// interrupt 발생 이후 원래 스레드를 정지시킴 => 이 행위를 위해 intStatus를 false로 설정
 		// 머신의 현재 상태를 intStatus에 넣고 머신의 interrupt 발생을 false상태로 만든다.
-		// interrupt class내의 disable함수는 기본적으로 enable이 false로 설정 되어있는것을 토대로
-		// oldStatus에 false 저장됨 => 그러므로 intStatus의 값은 false로 저장된다
 		boolean intStatus = Machine.interrupt().disable();
 		
 		// 복제된 스레드의 TCB를 실행 시킨다
