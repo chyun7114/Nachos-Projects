@@ -50,16 +50,16 @@ public final class Timer {
 	this.handler = handler;
     }
 
-		/**
-		 * Get the current time.
-		 *
-		 * @return	the number of clock ticks since Nachos started.
-		 */
-		public long getTime() {
+	/**
+	 * Get the current time.
+	 *
+	 * @return	the number of clock ticks since Nachos started.
+	 */
+	public long getTime() {
 		return privilege.stats.totalTicks;
-		}
+	}
 
-		private void timerInterrupt() {
+	private void timerInterrupt() {
 		scheduleInterrupt();
 		scheduleAutoGraderInterrupt();
 
@@ -67,9 +67,9 @@ public final class Timer {
 
 		if (handler != null)
 			handler.run();
-		}
+	}
 
-		private void scheduleInterrupt() {
+	private void scheduleInterrupt() {
 		int delay = Stats.TimerTicks;
 		delay += Lib.random(delay/10) - (delay/20);
 
@@ -77,7 +77,7 @@ public final class Timer {
     }
 
     private void scheduleAutoGraderInterrupt() {
-			privilege.interrupt.schedule(1, "timerAG", autoGraderInterrupt);
+		privilege.interrupt.schedule(1, "timerAG", autoGraderInterrupt);
     }
 
     private long lastTimerInterrupt;
