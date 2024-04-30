@@ -53,7 +53,7 @@ public class Alarm {
         // 현재 스레드를 블록 시키고 대기중인 스레드의 리스트에 집어넣는다
         blockedThreads.put(KThread.currentThread(), wakeTime);
         KThread.sleep();
-
+        
         // 인터럽트 상태를 복원한다
         Machine.interrupt().restore(intStatus);
     }
