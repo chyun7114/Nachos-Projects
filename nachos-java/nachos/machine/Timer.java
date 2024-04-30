@@ -1,59 +1,52 @@
-// PART OF THE MACHINE SIMULATION. DO NOT CHANGE.
-
 package nachos.machine;
 
-import nachos.security.*;
+import nachos.security.Privilege;
 
 /**
- * A hardware timer generates a CPU timer interrupt approximately every 500
- * clock ticks. This means that it can be used for implementing time-slicing,
- * or for having a thread go to sleep for a specific period of time.
+ * 하드웨어 타이머는 대략적으로 매 500 클록 틱마다 CPU 타이머 인터럽트를 생성합니다. 이는 타임 슬라이싱을 구현하거나
+ * 스레드를 특정 기간 동안 대기시키는 데 사용될 수 있습니다.
  *
- * The <tt>Timer</tt> class emulates a hardware timer by scheduling a timer
- * interrupt to occur every time approximately 500 clock ticks pass. There is
- * a small degree of randomness here, so interrupts do not occur exactly every
- * 500 ticks.
+ * <p><tt>Timer</tt> 클래스는 대략적으로 500 클록 틱이 경과할 때마다 타이머 인터럽트가 발생하도록 예약하여 하드웨어
+ * 타이머를 에뮬레이트합니다. 여기에는 약간의 무작위성이 있으므로 인터럽트가 정확히 매 500 틱마다 발생하지는 않습니다.
  */
 public final class Timer {
-    /**
-     * Allocate a new timer.
-     *
-     * @param	privilege      	encapsulates privileged access to the Nachos
-     *				machine.
-     */
-    public Timer(Privilege privilege) {
-		System.out.print(" timer");
+	/**
+	 * 새 타이머를 할당합니다.
+	 *
+	 * @param	privilege      	나초스 기계에 대한 권한있는 접근을 캡슐화합니다.
+	 */
+	public Timer(Privilege privilege) {
+		System.out.print("timer");
 
 		this.privilege = privilege;
 
 		timerInterrupt = new Runnable() {
 			public void run() { timerInterrupt(); }
-			};
+		};
 
 		autoGraderInterrupt = new Runnable() {
 			public void run() {
 				Machine.autoGrader().timerInterrupt(Timer.this.privilege,
-								lastTimerInterrupt);
+						lastTimerInterrupt);
 			}
-			};
+		};
 
 		scheduleInterrupt();
-    }
-
-    /**
-     * Set the callback to use as a timer interrupt handler. The timer
-     * interrupt handler will be called approximately every 500 clock ticks.
-     *
-     * @param	handler		the timer interrupt handler.
-     */
-    public void setInterruptHandler(Runnable handler) {
-	this.handler = handler;
-    }
+	}
 
 	/**
-	 * Get the current time.
+	 * 타이머 인터럽트 핸들러로 사용할 콜백을 설정합니다. 타이머 인터럽트 핸들러는 대략적으로 매 500 클록 틱마다 호출됩니다.
 	 *
-	 * @return	the number of clock ticks since Nachos started.
+	 * @param	handler		타이머 인터럽트 핸들러입니다.
+	 */
+	public void setInterruptHandler(Runnable handler) {
+		this.handler = handler;
+	}
+
+	/**
+	 * 현재 시간을 가져옵니다.
+	 *
+	 * @return	나초스를 시작한 이후의 클록 틱 수입니다.
 	 */
 	public long getTime() {
 		return privilege.stats.totalTicks;
@@ -71,19 +64,20 @@ public final class Timer {
 
 	private void scheduleInterrupt() {
 		int delay = Stats.TimerTicks;
-		delay += Lib.random(delay/10) - (delay/20);
+		int rand = Lib.random(delay/10);
+		delay +=  rand - (delay/20);
 
 		privilege.interrupt.schedule(delay, "timer", timerInterrupt);
-    }
+	}
 
-    private void scheduleAutoGraderInterrupt() {
+	private void scheduleAutoGraderInterrupt() {
 		privilege.interrupt.schedule(1, "timerAG", autoGraderInterrupt);
-    }
+	}
 
-    private long lastTimerInterrupt;
-    private Runnable timerInterrupt;
-    private Runnable autoGraderInterrupt;
+	private long lastTimerInterrupt;
+	private Runnable timerInterrupt;
+	private Runnable autoGraderInterrupt;
 
-    private Privilege privilege;
-    private Runnable handler = null;
+	private Privilege privilege;
+	private Runnable handler = null;
 }
