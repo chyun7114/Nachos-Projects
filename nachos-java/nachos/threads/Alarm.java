@@ -1,5 +1,6 @@
 package nachos.threads;
 
+import nachos.machine.Lib;
 import nachos.machine.Machine;
 
 import java.util.*;
@@ -53,7 +54,7 @@ public class Alarm {
         // 현재 스레드를 블록 시키고 대기중인 스레드의 리스트에 집어넣는다
         blockedThreads.put(KThread.currentThread(), wakeTime);
         KThread.sleep();
-        
+
         // 인터럽트 상태를 복원한다
         Machine.interrupt().restore(intStatus);
     }
@@ -82,27 +83,39 @@ public class Alarm {
         KThread.currentThread().yield();
     }
 
-    public static class AlarmTest {
-        public static void alarmTest () {
-            int durations[] = {1000, 10*1000, 100*1000};
-            long t0, t1;
 
-            for (int d : durations) {
-                t0 = Machine.timer().getTime();
-                System.out.println("alarmTest : execution time : " + t0);
-                ThreadedKernel.alarm.waitUntil(d);
-                ThreadedKernel.alarm.timerInterrupt();
-                t1 = Machine.timer().getTime();
-                System.out.println("alarmTest : wake-up time " + t1);
-            }
+    private static class AlarmTest implements Runnable {
+        private long delay;
+        AlarmTest(long delay) {
+            this.delay = delay;
         }
 
-        // Implement more test methods here ...
+        public void run() {
+            long startTime, nowTime;
 
-        // Invoke Alarm.selfTest() from ThreadedKernel.selfTest()
-        public static void selfTest () {
-            alarmTest();
-            // Invoke your other test methods here ...
+            startTime = Machine.timer().getTime();
+            long wakeUpTime = startTime + delay;
+
+            System.out.println("execution time : " + startTime);
+            System.out.println("wake-up time : " + wakeUpTime);
+
+            ThreadedKernel.alarm.waitUntil(delay);
+            ThreadedKernel.alarm.timerInterrupt();
+
+            nowTime = Machine.timer().getTime();
+
+            String checkTime = "(" + nowTime + " >= " + wakeUpTime +" (" + startTime + " + " + delay +"))";
+            System.out.println("wake-up time " + nowTime + checkTime);
         }
+    }
+    public static void selfTest(){
+        KThread[] t = new KThread[10];
+        long[] durations = {1000, 1500, 2000, 2500, 3000};
+        for(int i = 0; i < 10; i++){
+            int j = (Lib.random(5));
+            t[i] = new KThread(new AlarmTest((long)(durations[j]))).setName("forked thread");
+            t[i].fork();
+        }
+        ThreadedKernel.alarm.waitUntil(100000);
     }
 }
