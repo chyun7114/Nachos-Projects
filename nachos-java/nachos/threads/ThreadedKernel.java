@@ -46,10 +46,16 @@ public class ThreadedKernel extends Kernel {
      * tests here.
      */
     public void selfTest() {
-        System.out.println("******** KThread SelfTest ********");
+        System.out.println("******** KThread SelfTest **********");
         KThread.selfTest();
         System.out.println("**********************************\n");
 //      Semaphore.selfTest();
+        System.out.println("******** Condition2 SelfTest ********");
+        Condition2.selfTest();
+        System.out.println("*************************************");
+        System.out.println("******** JoinTest1 SelfTest *********");
+        KThread.joinTest1();
+        System.out.println("*************************************");
 //      SynchList.selfTest();
         System.out.println("******** Alarm SelfTest **********");
         Alarm.selfTest();
