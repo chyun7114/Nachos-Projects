@@ -136,57 +136,57 @@ public class KThread {
      * its target's <tt>run</tt> method).
      */
     public void fork() {
-		// º¹Á¦¸¦ ÇÏ±â À§ÇØ »õ·Î ½º·¹µå°¡ ¸¸µé¾îÁö´Â »óÅÂ¿¡ ÀÖ¾î¾ß ½ÇÇà
-		// Áï, ÇöÀç forkµÇÁö ¾ÊÀº »óÅÂ¿©¾ß fork ¼öÇà °¡´É
+		// ë³µì œë¥¼ í•˜ê¸° ìœ„í•´ ìƒˆë¡œ ìŠ¤ë ˆë“œê°€ ë§Œë“¤ì–´ì§€ëŠ” ìƒíƒœì— ìˆì–´ì•¼ ì‹¤í–‰
+		// ì¦‰, í˜„ì¬ forkë˜ì§€ ì•Šì€ ìƒíƒœì—¬ì•¼ fork ìˆ˜í–‰ ê°€ëŠ¥
 		Lib.assertTrue(status == statusNew);
-		// fork() method¸¦ ½ÇÇàÇÏ¿© ½º·¹µå¸¦ º¹Á¦ÇÏ±â Àü¿¡ º¹Á¦ ´ë»óÀÌ ÇöÀç ½ÇÇà ÁßÀÎÁö ÆÇ´Ü
+		// fork() methodë¥¼ ì‹¤í–‰í•˜ì—¬ ìŠ¤ë ˆë“œë¥¼ ë³µì œí•˜ê¸° ì „ì— ë³µì œ ëŒ€ìƒì´ í˜„ì¬ ì‹¤í–‰ ì¤‘ì¸ì§€ íŒë‹¨
 		Lib.assertTrue(target != null);
 
-		// µğ¹ö±× ¸Ş½ÃÁö¸¦ ¶ç¿ó´Ï´Ù
-		// ¾ÕÀ¸·Î ¸ğµç Lib.debugÇÔ¼ö´Â µğ¹ö±× ¸Ş½ÃÁö Ãâ·Â ¿ëµµÀÔ´Ï´Ù.
+		// ë””ë²„ê·¸ ë©”ì‹œì§€ë¥¼ ë„ì›ë‹ˆë‹¤
+		// ì•ìœ¼ë¡œ ëª¨ë“  Lib.debugí•¨ìˆ˜ëŠ” ë””ë²„ê·¸ ë©”ì‹œì§€ ì¶œë ¥ ìš©ë„ì…ë‹ˆë‹¤.
 		Lib.debug(dbgThread,
 			  "Forking thread: " + toString() + " Runnable: " + target);
 		
-		// interrupt ¹ß»ı ÀÌÈÄ ¿ø·¡ ½º·¹µå¸¦ Á¤Áö½ÃÅ´ => ÀÌ ÇàÀ§¸¦ À§ÇØ intStatus¸¦ false·Î ¼³Á¤
-		// ¸Ó½ÅÀÇ ÇöÀç »óÅÂ¸¦ intStatus¿¡ ³Ö°í ¸Ó½ÅÀÇ interrupt ¹ß»ıÀ» false»óÅÂ·Î ¸¸µç´Ù.
+		// interrupt ë°œìƒ ì´í›„ ì›ë˜ ìŠ¤ë ˆë“œë¥¼ ì •ì§€ì‹œí‚´ => ì´ í–‰ìœ„ë¥¼ ìœ„í•´ intStatusë¥¼ falseë¡œ ì„¤ì •
+		// ë¨¸ì‹ ì˜ í˜„ì¬ ìƒíƒœë¥¼ intStatusì— ë„£ê³  ë¨¸ì‹ ì˜ interrupt ë°œìƒì„ falseìƒíƒœë¡œ ë§Œë“ ë‹¤.
 		boolean intStatus = Machine.interrupt().disable();
 		
-		// º¹Á¦µÈ ½º·¹µåÀÇ TCB¸¦ ½ÇÇà ½ÃÅ²´Ù
-		// ÁöÁ¤µÈ targetÀÌ thread¿¡¼­ ½ÇÇàµÈ´Ù.
+		// ë³µì œëœ ìŠ¤ë ˆë“œì˜ TCBë¥¼ ì‹¤í–‰ ì‹œí‚¨ë‹¤
+		// ì§€ì •ëœ targetì´ threadì—ì„œ ì‹¤í–‰ëœë‹¤.
 		tcb.start(new Runnable() {
 			public void run() {
 				runThread();
 			}
 		});
 		
-		// forkµÈ ½º·¹µå¸¦ ready »óÅÂ·Î ¸¸µé°í
-		// ±× ½º·¹µå¸¦ readyQueue¿¡ Áı¾î ³Ö½À´Ï´Ù.
+		// forkëœ ìŠ¤ë ˆë“œë¥¼ ready ìƒíƒœë¡œ ë§Œë“¤ê³ 
+		// ê·¸ ìŠ¤ë ˆë“œë¥¼ readyQueueì— ì§‘ì–´ ë„£ìŠµë‹ˆë‹¤.
 		ready();
 		
-		// ÀÎÅÍ·´Æ® intStatusÀÇ »óÅÂ¿¡ µû¶ó º¹±¸½ÃÅ´
+		// ì¸í„°ëŸ½íŠ¸ intStatusì˜ ìƒíƒœì— ë”°ë¼ ë³µêµ¬ì‹œí‚´
 		Machine.interrupt().restore(intStatus);
     }
 
     private void runThread() {
-		// ½º·¹µå¸¦ ½ÃÀÛÇÏ±â À§ÇÑ ÁØºñ¸¦ ÇÔ
+		// ìŠ¤ë ˆë“œë¥¼ ì‹œì‘í•˜ê¸° ìœ„í•œ ì¤€ë¹„ë¥¼ í•¨
 		begin();
-		// ´Ù¸¥ ½º·¹µå¸¦ ½ÇÇà ½ÃÄÑ¶ó
+		// ë‹¤ë¥¸ ìŠ¤ë ˆë“œë¥¼ ì‹¤í–‰ ì‹œì¼œë¼
 		target.run();
-		// ½º·¹µå¸¦ ³¡¸¶Ä§
+		// ìŠ¤ë ˆë“œë¥¼ ëë§ˆì¹¨
 		finish();
     }
 
     private void begin() {
-		// ÇöÀç ½º·¹µå Á¤º¸ µğ¹ö±ë
+		// í˜„ì¬ ìŠ¤ë ˆë“œ ì •ë³´ ë””ë²„ê¹…
 		Lib.debug(dbgThread, "Beginning thread: " + toString());
 
-		// ÀÌ ½º·¹µå°¡ ÇöÀç ½ÇÇàÇÏ±â À§ÇÑ ½º·¹µåÀÎÁö È®ÀÎ
+		// ì´ ìŠ¤ë ˆë“œê°€ í˜„ì¬ ì‹¤í–‰í•˜ê¸° ìœ„í•œ ìŠ¤ë ˆë“œì¸ì§€ í™•ì¸
 		Lib.assertTrue(this == currentThread);
 		
-		// ÀÎÅÍ·´Æ®°¡ ¹ß»ıµÈ ÁöÁ¡ÀÌ³ª, Ã³À½ »óÅÂ¿¡¼­ ½º·¹µå¸¦ ½ÃÀÛ½ÃÅ°±â À§ÇØ ½ÇÇà ÁöÁ¡À» º¹¿øÇÔ
+		// ì¸í„°ëŸ½íŠ¸ê°€ ë°œìƒëœ ì§€ì ì´ë‚˜, ì²˜ìŒ ìƒíƒœì—ì„œ ìŠ¤ë ˆë“œë¥¼ ì‹œì‘ì‹œí‚¤ê¸° ìœ„í•´ ì‹¤í–‰ ì§€ì ì„ ë³µì›í•¨
 		restoreState();
 		
-		// ÇöÀç ÀÎÅÍ·´Æ®°¡ ¹ß»ı ÁßÀÎ »óÅÂ·Î ÀüÈ¯
+		// í˜„ì¬ ì¸í„°ëŸ½íŠ¸ê°€ ë°œìƒ ì¤‘ì¸ ìƒíƒœë¡œ ì „í™˜
 		Machine.interrupt().enable();
     }
 
@@ -221,21 +221,21 @@ public class KThread {
     public static void yield() {
 		Lib.debug(dbgThread, "Yielding thread: " + currentThread.toString());
 
-		// ÇöÀç ½º·¹µå°¡ ½ÇÇà ÁßÀÎÁö ÆÇ´Ü
+		// í˜„ì¬ ìŠ¤ë ˆë“œê°€ ì‹¤í–‰ ì¤‘ì¸ì§€ íŒë‹¨
 		Lib.assertTrue(currentThread.status == statusRunning);
 
-		// ÇöÀç ÀÎÅÍ·´Æ®¸¦ ºñÈ°¼ºÈ­ ½ÃÅ°±â Àü¿¡ ÀÌ »óÅÂ¸¦ ÀúÀå
+		// í˜„ì¬ ì¸í„°ëŸ½íŠ¸ë¥¼ ë¹„í™œì„±í™” ì‹œí‚¤ê¸° ì „ì— ì´ ìƒíƒœë¥¼ ì €ì¥
 		boolean intStatus = Machine.interrupt().disable();
 
-		// ÇöÀç ½ÇÇà ÁßÀÎ ½º·¹µå°¡ readyQueue·Î µé¾î°¨
+		// í˜„ì¬ ì‹¤í–‰ ì¤‘ì¸ ìŠ¤ë ˆë“œê°€ readyQueueë¡œ ë“¤ì–´ê°
 		currentThread.ready();
 
-		// ¾çº¸ ¹ŞÀº ´ÙÀ½ ½º·¹µå¸¦ ½ÇÇà
+		// ì–‘ë³´ ë°›ì€ ë‹¤ìŒ ìŠ¤ë ˆë“œë¥¼ ì‹¤í–‰
 
 		runNextThread();
 
-		// ½ÇÇàÀÌ Á¾·áµÇ¸é
-		// ¾çº¸ÇÑ ½º·¹µå°¡ ÀÎÅÍ·´Æ® ¹ß»ı ½ÃÁ¡À¸·Î µÇµ¹¾Æ°¡ ½º·¹µå¸¦ ´Ù½Ã ½ÇÇàÇÑ´Ù.
+		// ì‹¤í–‰ì´ ì¢…ë£Œë˜ë©´
+		// ì–‘ë³´í•œ ìŠ¤ë ˆë“œê°€ ì¸í„°ëŸ½íŠ¸ ë°œìƒ ì‹œì ìœ¼ë¡œ ë˜ëŒì•„ê°€ ìŠ¤ë ˆë“œë¥¼ ë‹¤ì‹œ ì‹¤í–‰í•œë‹¤.
 		Machine.interrupt().restore(intStatus);
     }
 
@@ -253,14 +253,14 @@ public class KThread {
     public static void sleep() {
 		Lib.debug(dbgThread, "Sleeping thread: " + currentThread.toString());
 
-		// ÇöÀç ÀÎÅÍ·´Æ®°¡ ºñÈ°¼ºÈ­ µÇ¾îÀÖ´ÂÁö È®ÀÎ
+		// í˜„ì¬ ì¸í„°ëŸ½íŠ¸ê°€ ë¹„í™œì„±í™” ë˜ì–´ìˆëŠ”ì§€ í™•ì¸
 		Lib.assertTrue(Machine.interrupt().disabled());
 		
-		// Á¾·áµÈ ½º·¹µå¸¦ block»óÅÂ·Î ¸¸µç´Ù
+		// ì¢…ë£Œëœ ìŠ¤ë ˆë“œë¥¼ blockìƒíƒœë¡œ ë§Œë“ ë‹¤
 		if (currentThread.status != statusFinished)
 			currentThread.status = statusBlocked;
 
-		// ÇöÀç ½º·¹µå°¡ Á¾·á ¶Ç´Â ¾çµµµÇ¾úÀ¸¹Ç·Î ´ÙÀ½ ½º·¹µå¸¦ ½ÇÇà ½ÃÅµ´Ï´Ù.
+		// í˜„ì¬ ìŠ¤ë ˆë“œê°€ ì¢…ë£Œ ë˜ëŠ” ì–‘ë„ë˜ì—ˆìœ¼ë¯€ë¡œ ë‹¤ìŒ ìŠ¤ë ˆë“œë¥¼ ì‹¤í–‰ ì‹œí‚µë‹ˆë‹¤.
 		runNextThread();
     }
 
@@ -271,16 +271,16 @@ public class KThread {
     public void ready() {
 		Lib.debug(dbgThread, "Ready thread: " + toString());
 
-		// ÀÎÅÍ·´Æ®°¡ ÇöÀç ºñÈ°¼ºÈ­ »óÅÂÀÎÁö È®ÀÎ
+		// ì¸í„°ëŸ½íŠ¸ê°€ í˜„ì¬ ë¹„í™œì„±í™” ìƒíƒœì¸ì§€ í™•ì¸
 		Lib.assertTrue(Machine.interrupt().disabled());
-		// ·¹µğ »óÅÂ°¡ ¾Æ´Ï¾î¾ß ·¹µğ »óÅÂ·Î ½º·¹µå¸¦ ¸¸µé ¼ö ÀÖ´Ù
+		// ë ˆë”” ìƒíƒœê°€ ì•„ë‹ˆì–´ì•¼ ë ˆë”” ìƒíƒœë¡œ ìŠ¤ë ˆë“œë¥¼ ë§Œë“¤ ìˆ˜ ìˆë‹¤
 		Lib.assertTrue(status != statusReady);
 
-		// »óÅÂ¸¦ ·¹µğ »óÅÂ·Î ¸¸µç µÚ
+		// ìƒíƒœë¥¼ ë ˆë”” ìƒíƒœë¡œ ë§Œë“  ë’¤
 		status = statusReady;
-		// ÀÌ ½º·¹µå°¡ idle½º·¹µå°¡ ¾Æ´Ï¸é
+		// ì´ ìŠ¤ë ˆë“œê°€ idleìŠ¤ë ˆë“œê°€ ì•„ë‹ˆë©´
 		if (this != idleThread)
-			// ·¹µğ Å¥¿¡ ·¹µğ »óÅÂ·Î ¸¸µç ½º·¹µå¸¦ Áı¾î³Ö´Â´Ù
+			// ë ˆë”” íì— ë ˆë”” ìƒíƒœë¡œ ë§Œë“  ìŠ¤ë ˆë“œë¥¼ ì§‘ì–´ë„£ëŠ”ë‹¤
 			readyQueue.waitForAccess(this);
 
 		Machine.autoGrader().readyThread(this);
@@ -295,56 +295,56 @@ public class KThread {
 
 	private boolean hasJoined = false;
 	private boolean finished = false;
-	private ThreadQueue joinQueue = null; // join ´ë±â¿­ Ãß°¡
+	private ThreadQueue joinQueue = null; // join ëŒ€ê¸°ì—´ ì¶”ê°€
 
 	public void join() {
 		Lib.debug(dbgThread, "Joining to thread: " + toString());
 
-		Lib.assertTrue(this != currentThread); // ÀÚ±â ÀÚ½ÅÀ» joinÇÒ ¼ö ¾øÀ½
+		Lib.assertTrue(this != currentThread); // ìê¸° ìì‹ ì„ joiní•  ìˆ˜ ì—†ìŒ
 
-		// ÀÌ¹Ì Á¶ÀÎµÈ °æ¿ì ¹«½Ã
+		// ì´ë¯¸ ì¡°ì¸ëœ ê²½ìš° ë¬´ì‹œ
 		if(this.hasJoined){
 			return;
 		}
 
 		this.hasJoined = true;
 
-		boolean intStatus = Machine.interrupt().disable(); // ÀÎÅÍ·´Æ® ºñÈ°¼ºÈ­
+		boolean intStatus = Machine.interrupt().disable(); // ì¸í„°ëŸ½íŠ¸ ë¹„í™œì„±í™”
 
 		if (status != statusFinished) {
 			if (joinQueue == null) {
 				joinQueue = ThreadedKernel.scheduler.newThreadQueue(true);
 				joinQueue.acquire(this);
 			}
-			joinQueue.waitForAccess(currentThread); // ÇöÀç ½º·¹µå¸¦ ´ë±â¿­¿¡ Ãß°¡
-			sleep(); // ÇöÀç ½º·¹µå¸¦ ´ë±â »óÅÂ·Î ¸¸µê
+			joinQueue.waitForAccess(currentThread); // í˜„ì¬ ìŠ¤ë ˆë“œë¥¼ ëŒ€ê¸°ì—´ì— ì¶”ê°€
+			sleep(); // í˜„ì¬ ìŠ¤ë ˆë“œë¥¼ ëŒ€ê¸° ìƒíƒœë¡œ ë§Œë“¦
 		}
 		else{
 			return;
 		}
 
-		Machine.interrupt().restore(intStatus); // ÀÎÅÍ·´Æ® »óÅÂ º¹¿ø
+		Machine.interrupt().restore(intStatus); // ì¸í„°ëŸ½íŠ¸ ìƒíƒœ ë³µì›
 	}
 
 	public static void finish() {
-		// ÇöÀç ÀÛµ¿ÁßÀÎ ½º·¹µå Á¤º¸¸¦ µğ¹ö±ë(Ãâ·Â)
+		// í˜„ì¬ ì‘ë™ì¤‘ì¸ ìŠ¤ë ˆë“œ ì •ë³´ë¥¼ ë””ë²„ê¹…(ì¶œë ¥)
 		Lib.debug(dbgThread, "Finishing thread: " + currentThread.toString());
 
-		// ¸Ó½ÅÀÇ ÀÎÅÍ·´Æ® ¹ß»ıÀ» ºÒ°¡´É ÇÏ°Ô ÇÔ
+		// ë¨¸ì‹ ì˜ ì¸í„°ëŸ½íŠ¸ ë°œìƒì„ ë¶ˆê°€ëŠ¥ í•˜ê²Œ í•¨
 		Machine.interrupt().disable();
 
-		// ÇöÀç ½ÇÇàÁßÀÎ ½º·¹µå¿¡ destroy¸¦ °¡´É ÇÏ°Ô ÇÑ´Ù.
+		// í˜„ì¬ ì‹¤í–‰ì¤‘ì¸ ìŠ¤ë ˆë“œì— destroyë¥¼ ê°€ëŠ¥ í•˜ê²Œ í•œë‹¤.
 		Machine.autoGrader().finishingCurrentThread();
 
-		// destroy °¡´ÉÇÑ ½º·¹µå°¡ ÀÖ´ÂÁö È®ÀÎ ¾øÀ¸¸é ¿À·ù Ãâ·Â
+		// destroy ê°€ëŠ¥í•œ ìŠ¤ë ˆë“œê°€ ìˆëŠ”ì§€ í™•ì¸ ì—†ìœ¼ë©´ ì˜¤ë¥˜ ì¶œë ¥
 		Lib.assertTrue(toBeDestroyed == null);
-		// ÇöÀç ½º·¹µå¸¦ destroy ¿¹Á¤À¸·Î ¸¸µç´Ù
+		// í˜„ì¬ ìŠ¤ë ˆë“œë¥¼ destroy ì˜ˆì •ìœ¼ë¡œ ë§Œë“ ë‹¤
 		toBeDestroyed = currentThread;
 
-		// ÇöÀç ½ÇÇà ÁßÀÎ ½º·¹µåÀÇ status¸¦ finish state·Î ¸¸µç´Ù
+		// í˜„ì¬ ì‹¤í–‰ ì¤‘ì¸ ìŠ¤ë ˆë“œì˜ statusë¥¼ finish stateë¡œ ë§Œë“ ë‹¤
 		currentThread.status = statusFinished;
 
-		// joinQueue¿¡ ´ë±â ÁßÀÎ ¸ğµç ½º·¹µå¸¦ ±ú¿ò
+		// joinQueueì— ëŒ€ê¸° ì¤‘ì¸ ëª¨ë“  ìŠ¤ë ˆë“œë¥¼ ê¹¨ì›€
 		if (currentThread.joinQueue != null) {
 			KThread nextThread;
 			while ((nextThread = currentThread.joinQueue.nextThread()) != null) {
@@ -352,7 +352,7 @@ public class KThread {
 			}
 		}
 
-		// ÇöÀç ÀÎÅÍ·´Æ®°¡ ¹ß»ı ÁßÀÎÁö¸¦ Ã¼Å©ÇØ¼­, ÇöÀç ¹ß»ı ÁßÀÌ ¾Æ´Ï¶ó¸é ´ÙÀ½¿¡ ½ÇÇàÇÒ ½º·¹µå·Î ³Ñ±ä´Ù.
+		// í˜„ì¬ ì¸í„°ëŸ½íŠ¸ê°€ ë°œìƒ ì¤‘ì¸ì§€ë¥¼ ì²´í¬í•´ì„œ, í˜„ì¬ ë°œìƒ ì¤‘ì´ ì•„ë‹ˆë¼ë©´ ë‹¤ìŒì— ì‹¤í–‰í•  ìŠ¤ë ˆë“œë¡œ ë„˜ê¸´ë‹¤.
 		sleep();
 	}
 
@@ -407,14 +407,14 @@ public class KThread {
      * using <tt>run()</tt>.
      */
     private static void runNextThread() {
-		// ·¹µğ Å¥¿¡¼­ ´ÙÀ½¿¡ ½ÇÇàÇÒ ½º·¹µå¸¦ »©¿Â´Ù
+		// ë ˆë”” íì—ì„œ ë‹¤ìŒì— ì‹¤í–‰í•  ìŠ¤ë ˆë“œë¥¼ ë¹¼ì˜¨ë‹¤
 		KThread nextThread = readyQueue.nextThread();
-		// ¸¸¾à¿¡ ·¹µğÅ¥°¡ ºñ¾îÀÖ´Ù¸é
+		// ë§Œì•½ì— ë ˆë””íê°€ ë¹„ì–´ìˆë‹¤ë©´
 		if (nextThread == null)
-			// ºñ¾îÀÖ´Â kThread°´Ã¼¸¦ ´ÙÀ½ ½º·¹µå·Î ÇÑ µÚ
+			// ë¹„ì–´ìˆëŠ” kThreadê°ì²´ë¥¼ ë‹¤ìŒ ìŠ¤ë ˆë“œë¡œ í•œ ë’¤
 			nextThread = idleThread;
 		
-		// ´ÙÀ½¿¡ ½ÇÇàÇÏ°íÀÚÇÏ´Â ½º·¹µå¸¦ ÀÛµ¿½ÃÅ²´Ù
+		// ë‹¤ìŒì— ì‹¤í–‰í•˜ê³ ìí•˜ëŠ” ìŠ¤ë ˆë“œë¥¼ ì‘ë™ì‹œí‚¨ë‹¤
 		nextThread.run();
     }
 
@@ -439,25 +439,25 @@ public class KThread {
      *				thread.
      */
     private void run() {
-		// ÀÎÅÍ·´Æ®°¡ ¹ß»ıÇÏÁö ¾ÊÀº »óÅÂÀÎÁö Ã¼Å©
+		// ì¸í„°ëŸ½íŠ¸ê°€ ë°œìƒí•˜ì§€ ì•Šì€ ìƒíƒœì¸ì§€ ì²´í¬
 		Lib.assertTrue(Machine.interrupt().disabled());
 		
-		// ½ÇÇà ÁßÀÎ ½º·¹µå°¡ ´Ù¸¥ ½º·¹µåÀÇ ½ÇÇàÀ» À§ÇØ ¾çº¸ÇÔ
+		// ì‹¤í–‰ ì¤‘ì¸ ìŠ¤ë ˆë“œê°€ ë‹¤ë¥¸ ìŠ¤ë ˆë“œì˜ ì‹¤í–‰ì„ ìœ„í•´ ì–‘ë³´í•¨
 		Machine.yield();
 		
-		// ÇöÀç ½ÇÇàÁßÀÎ ½º·¹µå´Â ³ªÁß¿¡ º¹¿øÀ» À§ÇØ ÇöÀç »óÅÂ¸¦ ÀúÀåÇÏ°í
+		// í˜„ì¬ ì‹¤í–‰ì¤‘ì¸ ìŠ¤ë ˆë“œëŠ” ë‚˜ì¤‘ì— ë³µì›ì„ ìœ„í•´ í˜„ì¬ ìƒíƒœë¥¼ ì €ì¥í•˜ê³ 
 		currentThread.saveState();
 
 		Lib.debug(dbgThread, "Switching from: " + currentThread.toString()
 			  + " to: " + toString());
 		
-		// ÇöÀç ½º·¹µå¸¦ ÀÌ ¸Ş¼Òµå¸¦ È£ÃâÇÑ ½º·¹µå·Î º¯°æ
+		// í˜„ì¬ ìŠ¤ë ˆë“œë¥¼ ì´ ë©”ì†Œë“œë¥¼ í˜¸ì¶œí•œ ìŠ¤ë ˆë“œë¡œ ë³€ê²½
 		currentThread = this;
 		
-		// this¿Í ¿ø·¡ currentThread »çÀÌ¿¡ contextSwitch°¡ ÀÏ¾î³ª°Ô ÇÑ ´ÙÀ½
+		// thisì™€ ì›ë˜ currentThread ì‚¬ì´ì— contextSwitchê°€ ì¼ì–´ë‚˜ê²Œ í•œ ë‹¤ìŒ
 		tcb.contextSwitch();
 		
-		// this, Áï ½ÇÇàÇÏ°íÀÚ ÇÏ´Â ½º·¹µåÀÇ »óÅÂ¸¦ runningÀ¸·Î ¸¸µç´Ù.
+		// this, ì¦‰ ì‹¤í–‰í•˜ê³ ì í•˜ëŠ” ìŠ¤ë ˆë“œì˜ ìƒíƒœë¥¼ runningìœ¼ë¡œ ë§Œë“ ë‹¤.
 		currentThread.restoreState();
     }
 
@@ -468,23 +468,23 @@ public class KThread {
     protected void restoreState() {
 		Lib.debug(dbgThread, "Running thread: " + currentThread.toString());
 
-		// ½º·¹µåÀÇ »óÅÂ¸¦ Ã¼Å©
-		// ÀÎÅÍ·´Æ®°¡ ºñÈ°¼ºÈ­ »óÅÂÀÎÁö Ã¼Å©ÇÏ°í
-		// ÇöÀç ½ÇÇàÁßÀÎ ½º·¹µå¿Í ¸Ş¼Òµå¸¦ È£ÃâÇÑ ½º·¹µå°¡ ÀÏÄ¡ÇÏ´ÂÁö Ã¼Å©ÇÏ°í
-		// tcb°¡ ÀÏÄ¡ÇÏ´ÂÁö È®ÀÎÇÑ´Ù.
+		// ìŠ¤ë ˆë“œì˜ ìƒíƒœë¥¼ ì²´í¬
+		// ì¸í„°ëŸ½íŠ¸ê°€ ë¹„í™œì„±í™” ìƒíƒœì¸ì§€ ì²´í¬í•˜ê³ 
+		// í˜„ì¬ ì‹¤í–‰ì¤‘ì¸ ìŠ¤ë ˆë“œì™€ ë©”ì†Œë“œë¥¼ í˜¸ì¶œí•œ ìŠ¤ë ˆë“œê°€ ì¼ì¹˜í•˜ëŠ”ì§€ ì²´í¬í•˜ê³ 
+		// tcbê°€ ì¼ì¹˜í•˜ëŠ”ì§€ í™•ì¸í•œë‹¤.
 		Lib.assertTrue(Machine.interrupt().disabled());
 		Lib.assertTrue(this == currentThread);
 		Lib.assertTrue(tcb == TCB.currentTCB());
 
-		// current½º·¹µåÀÇ »óÅÂ¸¦ ¼öÁ¤ÇÑ´Ù
-		// current½º·¹µåÀÇ »óÅÂ¸¦ runÀ¸·Î ¹Ù²Ş -> ¹Ù·Î ´ÙÀ½¿¡ µ¿ÀÛÀ» À§ÇÑ »óÅÂ·Î ÀüÈ¯
+		// currentìŠ¤ë ˆë“œì˜ ìƒíƒœë¥¼ ìˆ˜ì •í•œë‹¤
+		// currentìŠ¤ë ˆë“œì˜ ìƒíƒœë¥¼ runìœ¼ë¡œ ë°”ê¿ˆ -> ë°”ë¡œ ë‹¤ìŒì— ë™ì‘ì„ ìœ„í•œ ìƒíƒœë¡œ ì „í™˜
 		Machine.autoGrader().runningThread(this);
 		status = statusRunning;
 		
 		
-		// toBeDestroyed°¡ ³ÎÀÌ ¾Æ´Ï¸é
-		// ¾ø¾îÁ®¾ß ÇÏ´Â ½º·¹µå°¡ runningÀ¸·Î ¹Ù²î¸é ¾ÈµÇ±â ¶§¹®¿¡
-		// tobedestroyed¿¡ ¿Ã¶ó¿Â ½º·¹µåÀÇ ÇØ´ç Á¤º¸¸¦ ´Ù ¾ø¾Ø´Ù
+		// toBeDestroyedê°€ ë„ì´ ì•„ë‹ˆë©´
+		// ì—†ì–´ì ¸ì•¼ í•˜ëŠ” ìŠ¤ë ˆë“œê°€ runningìœ¼ë¡œ ë°”ë€Œë©´ ì•ˆë˜ê¸° ë•Œë¬¸ì—
+		// tobedestroyedì— ì˜¬ë¼ì˜¨ ìŠ¤ë ˆë“œì˜ í•´ë‹¹ ì •ë³´ë¥¼ ë‹¤ ì—†ì•¤ë‹¤
 		if (toBeDestroyed != null) {
 			toBeDestroyed.tcb.destroy();
 			toBeDestroyed.tcb = null;
@@ -498,8 +498,8 @@ public class KThread {
      */
     protected void saveState() {
 		Lib.assertTrue(Machine.interrupt().disabled());
-		// »óÅÂ º¹¿øÀ» À§ÇØ ÇöÀç ½ÇÇàÁßÀÎ ½º·¹µå°¡ ÀÌ ¸Ş¼Òµå¸¦ È£ÃâÇÑ ½º·¹µåÀÎÁö Ã¼Å©ÇÔ
-		// ¸¸¾à ¸Â´Ù¸é ÇöÀç »óÅÂ°¡ ÀúÀå µÉ °ÍÀÌ°í, ¾Æ´Ï¸é ¿À·ù Ãâ·Â
+		// ìƒíƒœ ë³µì›ì„ ìœ„í•´ í˜„ì¬ ì‹¤í–‰ì¤‘ì¸ ìŠ¤ë ˆë“œê°€ ì´ ë©”ì†Œë“œë¥¼ í˜¸ì¶œí•œ ìŠ¤ë ˆë“œì¸ì§€ ì²´í¬í•¨
+		// ë§Œì•½ ë§ë‹¤ë©´ í˜„ì¬ ìƒíƒœê°€ ì €ì¥ ë  ê²ƒì´ê³ , ì•„ë‹ˆë©´ ì˜¤ë¥˜ ì¶œë ¥
 		Lib.assertTrue(this == currentThread);
     }
 
