@@ -200,27 +200,7 @@ public class KThread {
      * destroyed automatically by the next thread to run, when it is safe to
      * delete this thread.
      */
-    public static void finish() {
-		// 현재 작동중인 스레드 정보를 디버깅(출력)
-		Lib.debug(dbgThread, "Finishing thread: " + currentThread.toString());
 
-		// 머신의 인터럽트 발생을 불가능 하게 함
-		Machine.interrupt().disable();
-
-		// 현재 실행중인 스레드에 destroy를 가능 하게 한다.
-		Machine.autoGrader().finishingCurrentThread();
-
-		// destroy 가능한 스레드가 있는지 확인 없으면 오류 출력
-		Lib.assertTrue(toBeDestroyed == null);
-		// 현재 스레드를 destroy 예정으로 만든다
-		toBeDestroyed = currentThread;
-
-		// 현재 실행 중인 스레드의 status를 finish state로 만든다
-		currentThread.status = statusFinished;
-
-		// 현재 인터럽트가 발생 중인지를 체크해서, 현재 발생 중이 아니라면 다음에 실행할 스레드로 넘긴다.
-		sleep();
-    }
 
     /**
      * Relinquish the CPU if any other thread is ready to run. If so, put the
@@ -247,10 +227,10 @@ public class KThread {
 		// 현재 인터럽트를 비활성화 시키기 전에 이 상태를 저장
 		boolean intStatus = Machine.interrupt().disable();
 
-		// 현재 실행중인 스레드가 readyQueue로 들어감
+		// 현재 실행 중인 스레드가 readyQueue로 들어감
 		currentThread.ready();
 
-		// 양보받은 다음 스레드를 실행
+		// 양보 받은 다음 스레드를 실행
 
 		runNextThread();
 
@@ -312,16 +292,93 @@ public class KThread {
      * call is not guaranteed to return. This thread must not be the current
      * thread.
      */
-    public void join() {
-		// 스레드에서 join은 다른 스레드가 종료될 때까지 기다리는 메소드이다
+
+	private boolean hasJoined = false;
+	private boolean finished = false;
+	private ThreadQueue joinQueue = null; // join 대기열 추가
+
+	public void join() {
 		Lib.debug(dbgThread, "Joining to thread: " + toString());
 
-		// 만약 현재 실행중인 스레드가 자기 자신인 경우
-		// 자기 자신이 끝날 때까지 기다리는 것은 말이 안되기 때문에
-		// 현재 실행중인 스레드가 join메소드를 일으킨 스레드라면 오류를 발생시키고
-		// 아니라면 join메소드를 일으킨 스레드가 현재 실행중인 스레드가 종료될 때까지 기다린다.
-		Lib.assertTrue(this != currentThread);
-    }
+		Lib.assertTrue(this != currentThread); // 자기 자신을 join할 수 없음
+
+		// 이미 조인된 경우 무시
+		if(this.hasJoined){
+			return;
+		}
+
+		this.hasJoined = true;
+
+		boolean intStatus = Machine.interrupt().disable(); // 인터럽트 비활성화
+
+		if (status != statusFinished) {
+			if (joinQueue == null) {
+				joinQueue = ThreadedKernel.scheduler.newThreadQueue(true);
+				joinQueue.acquire(this);
+			}
+			joinQueue.waitForAccess(currentThread); // 현재 스레드를 대기열에 추가
+			sleep(); // 현재 스레드를 대기 상태로 만듦
+		}
+		else{
+			return;
+		}
+
+		Machine.interrupt().restore(intStatus); // 인터럽트 상태 복원
+	}
+
+	public static void finish() {
+		// 현재 작동중인 스레드 정보를 디버깅(출력)
+		Lib.debug(dbgThread, "Finishing thread: " + currentThread.toString());
+
+		// 머신의 인터럽트 발생을 불가능 하게 함
+		Machine.interrupt().disable();
+
+		// 현재 실행중인 스레드에 destroy를 가능 하게 한다.
+		Machine.autoGrader().finishingCurrentThread();
+
+		// destroy 가능한 스레드가 있는지 확인 없으면 오류 출력
+		Lib.assertTrue(toBeDestroyed == null);
+		// 현재 스레드를 destroy 예정으로 만든다
+		toBeDestroyed = currentThread;
+
+		// 현재 실행 중인 스레드의 status를 finish state로 만든다
+		currentThread.status = statusFinished;
+
+		// joinQueue에 대기 중인 모든 스레드를 깨움
+		if (currentThread.joinQueue != null) {
+			KThread nextThread;
+			while ((nextThread = currentThread.joinQueue.nextThread()) != null) {
+				nextThread.ready();
+			}
+		}
+
+		// 현재 인터럽트가 발생 중인지를 체크해서, 현재 발생 중이 아니라면 다음에 실행할 스레드로 넘긴다.
+		sleep();
+	}
+
+	public static void joinTest1() {
+		KThread child1 = new KThread(new Runnable() {
+			public void run() {
+				System.out.println("I (heart) Nachos!");
+			}
+		});
+
+		child1.setName("child1").fork();
+
+		// We want the child to finish before we call join.  Although
+		// our solutions to the problems cannot busy wait, our test
+		// programs can!
+
+		for (int i = 0; i < 5; i++) {
+			System.out.println("busy...");
+			KThread.currentThread().yield();
+		}
+
+		child1.join();
+		System.out.println("After joining, child1 should be finished.");
+		System.out.println("is it? " + (child1.status == statusFinished));
+		Lib.assertTrue((child1.status == statusFinished), " Expected child1 to be finished.");
+	}
 
     /**
      * Create the idle thread. Whenever there are no threads ready to be run,
@@ -471,30 +528,6 @@ public class KThread {
 		new KThread(new PingTest(1)).setName("forked thread").fork();
 		new PingTest(0).run();
     }
-
-	public static void joinTest1() {
-		KThread child1 = new KThread(new Runnable() {
-			public void run() {
-				System.out.println("I (heart) Nachos!");
-			}
-		});
-
-		child1.setName("child1").fork();
-
-		// We want the child to finish before we call join.  Although
-		// our solutions to the problems cannot busy wait, our test
-		// programs can!
-
-		for (int i = 0; i < 5; i++) {
-			System.out.println("busy...");
-			KThread.currentThread().yield();
-		}
-
-		child1.join();
-		System.out.println("After joining, child1 should be finished.");
-		System.out.println("is it? " + (child1.status == statusFinished));
-		Lib.assertTrue((child1.status == statusFinished), " Expected child1 to be finished.");
-	}
 
     private static final char dbgThread = 't';
 
