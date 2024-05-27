@@ -2,6 +2,8 @@ package nachos.threads;
 
 import nachos.machine.*;
 
+import java.util.Vector;
+
 /**
  * A KThread is a thread that can be used to execute Nachos kernel code. Nachos
  * allows multiple threads to run concurrently.
@@ -295,66 +297,51 @@ public class KThread {
 
 	private boolean hasJoined = false;
 	private boolean finished = false;
-	private ThreadQueue joinQueue = null; // join 대기열 추가
+	private Vector joined_Queue = null; // join 대기열 추가
 
 	public void join() {
 		Lib.debug(dbgThread, "Joining to thread: " + toString());
+		Machine.interrupt().disable();
+		Lib.assertTrue(this != currentThread);
 
-		Lib.assertTrue(this != currentThread); // 자기 자신을 join할 수 없음
+		if (joined_Queue == null) {
+			joined_Queue = new Vector();
+		}
 
-		// 이미 조인된 경우 무시
-		if(this.hasJoined){
+		if (this.status == statusFinished)
 			return;
-		}
 
-		this.hasJoined = true;
+		joined_Queue.addElement((KThread) currentThread);
+		currentThread.sleep();
 
-		boolean intStatus = Machine.interrupt().disable(); // 인터럽트 비활성화
-
-		if (status != statusFinished) {
-			if (joinQueue == null) {
-				joinQueue = ThreadedKernel.scheduler.newThreadQueue(true);
-				joinQueue.acquire(this);
-			}
-			joinQueue.waitForAccess(currentThread); // 현재 스레드를 대기열에 추가
-			sleep(); // 현재 스레드를 대기 상태로 만듦
-		}
-		else{
-			return;
-		}
-
-		Machine.interrupt().restore(intStatus); // 인터럽트 상태 복원
+		Machine.interrupt().enable();
 	}
 
 	public static void finish() {
-		// 현재 작동중인 스레드 정보를 디버깅(출력)
 		Lib.debug(dbgThread, "Finishing thread: " + currentThread.toString());
 
-		// 머신의 인터럽트 발생을 불가능 하게 함
 		Machine.interrupt().disable();
 
-		// 현재 실행중인 스레드에 destroy를 가능 하게 한다.
-		Machine.autoGrader().finishingCurrentThread();
-
-		// destroy 가능한 스레드가 있는지 확인 없으면 오류 출력
-		Lib.assertTrue(toBeDestroyed == null);
-		// 현재 스레드를 destroy 예정으로 만든다
-		toBeDestroyed = currentThread;
-
-		// 현재 실행 중인 스레드의 status를 finish state로 만든다
-		currentThread.status = statusFinished;
-
-		// joinQueue에 대기 중인 모든 스레드를 깨움
-		if (currentThread.joinQueue != null) {
-			KThread nextThread;
-			while ((nextThread = currentThread.joinQueue.nextThread()) != null) {
-				nextThread.ready();
+		if (currentThread.joined_Queue != null) {
+			KThread tempThread;
+			while (!currentThread.joined_Queue.isEmpty()) {
+				tempThread = (KThread) currentThread.joined_Queue.get(0);
+				tempThread.ready();
+				currentThread.joined_Queue.remove(0);
 			}
 		}
 
-		// 현재 인터럽트가 발생 중인지를 체크해서, 현재 발생 중이 아니라면 다음에 실행할 스레드로 넘긴다.
+		Machine.autoGrader().finishingCurrentThread();
+
+		Lib.assertTrue(toBeDestroyed == null);
+		toBeDestroyed = currentThread;
+
+
+		currentThread.status = statusFinished;
+
 		sleep();
 	}
+
 
 	public static void joinTest1() {
 		KThread child1 = new KThread(new Runnable() {
