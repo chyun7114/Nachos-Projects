@@ -1,58 +1,76 @@
 package nachos.threads;
 
 import nachos.machine.*;
+import java.util.LinkedList;
 
 /**
- * An implementation of condition variables that disables interrupt()s for
- * synchronization.
- *
- * <p>
- * You must implement this.
- *
- * @see	nachos.threads.Condition
+ * 인터럽트 비활성화/활성화를 통해 구현한 조건 변수 클래스.
  */
 public class Condition2 {
+    private Lock conditionLock;
+    private LinkedList<KThread> waitQueue;
+
     /**
-     * Allocate a new condition variable.
+     * 새로운 조건 변수를 생성합니다.
      *
-     * @param	conditionLock	the lock associated with this condition
-     *				variable. The current thread must hold this
-     *				lock whenever it uses <tt>sleep()</tt>,
-     *				<tt>wake()</tt>, or <tt>wakeAll()</tt>.
+     * @param conditionLock 이 조건 변수와 연결된 락. 현재 스레드는 sleep(), wake(), wakeAll()을 호출할 때 이 락을 소유해야 합니다.
      */
     public Condition2(Lock conditionLock) {
-	this.conditionLock = conditionLock;
+        this.conditionLock = conditionLock;
+        waitQueue = new LinkedList<>();
     }
 
     /**
-     * Atomically release the associated lock and go to sleep on this condition
-     * variable until another thread wakes it using <tt>wake()</tt>. The
-     * current thread must hold the associated lock. The thread will
-     * automatically reacquire the lock before <tt>sleep()</tt> returns.
+     * 조건 변수를 사용하여 락을 원자적으로 해제하고 다른 스레드가 wake()을 호출할 때까지 현재 스레드를 슬립 상태로 만듭니다.
+     * 현재 스레드는 이 메서드를 호출할 때 락을 소유해야 합니다. 슬립이 끝나면 락을 자동으로 다시 획득합니다.
      */
     public void sleep() {
-	Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+        Lib.assertTrue(conditionLock.isHeldByCurrentThread());
 
-	conditionLock.release();
+        boolean intStatus = Machine.interrupt().disable();
 
-	conditionLock.acquire();
+        waitQueue.add(KThread.currentThread());
+        conditionLock.release();
+        KThread.sleep();
+
+        conditionLock.acquire();
+        Machine.interrupt().restore(intStatus);
     }
 
     /**
-     * Wake up at most one thread sleeping on this condition variable. The
-     * current thread must hold the associated lock.
+     * 조건 변수에서 슬립 상태인 스레드 중 최대 하나를 깨웁니다. 현재 스레드는 이 메서드를 호출할 때 락을 소유해야 합니다.
      */
     public void wake() {
-	Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+        Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+
+        boolean intStatus = Machine.interrupt().disable();
+
+        if (!waitQueue.isEmpty()) {
+            KThread thread = waitQueue.removeFirst();
+            if (thread != null) {
+                thread.ready();
+            }
+        }
+
+        Machine.interrupt().restore(intStatus);
     }
 
     /**
-     * Wake up all threads sleeping on this condition variable. The current
-     * thread must hold the associated lock.
+     * 조건 변수에서 슬립 상태인 모든 스레드를 깨웁니다. 현재 스레드는 이 메서드를 호출할 때 락을 소유해야 합니다.
      */
     public void wakeAll() {
-	Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+        Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+
+        while (!waitQueue.isEmpty()) {
+            wake();
+        }
     }
+
+    // Place Condition2 testing code in the Condition2 class.
+
+    // Example of the "interlock" pattern where two threads strictly
+    // alternate their execution with each other using a condition
+    // variable.
 
     private static class InterlockTest {
         private static Lock lock;
@@ -101,6 +119,4 @@ public class Condition2 {
     public static void selfTest() {
         new InterlockTest();
     }
-
-    private Lock conditionLock;
 }
